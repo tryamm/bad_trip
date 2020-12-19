@@ -10,7 +10,6 @@ namespace bad_trip.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class DrugController : ControllerBase
     {
         private readonly DrugService _drugService;
@@ -21,6 +20,7 @@ namespace bad_trip.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IEnumerable<DrugDTO>> Get()
         {
             return await _drugService.GetProductsAsync(string.Empty);
