@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,6 +43,15 @@ namespace JWTAuthentication.Controllers
             return response;
         }
 
+        [HttpGet]
+        public async Task<UserModel> Login()
+        {
+            var currentUser = HttpContext.User;
+            var userId = currentUser.Claims.FirstOrDefault(x => x.Type == "sid").Value;
+            return await _loginService.GetUserById(userId);
+            //await _loginService.GetCurrentUser();
+        }
+
         private string GenerateJSONWebToken(UserModel userInfo)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -49,8 +59,8 @@ namespace JWTAuthentication.Controllers
 
             var claims = new[] {
                 new Claim(JwtRegisteredClaimNames.Sub, userInfo.Username),
-                //new Claim(JwtRegisteredClaimNames.Email, userInfo.EmailAddress),
-                //new Claim("DateOfJoing", userInfo.DateOfJoing.ToString("yyyy-MM-dd")),
+                new Claim(JwtRegisteredClaimNames.Sid, userInfo.Id),
+                //new Claim(JwtRegisteredClaimNames.GivenName, userInfo.FullName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

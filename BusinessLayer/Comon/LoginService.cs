@@ -24,7 +24,12 @@ namespace BusinessLayer.Comon
             var builder = new FilterDefinitionBuilder<UserModel>();
             var filter = builder.Empty;
             filter = filter & builder.Regex("Username", new BsonRegularExpression(user.Username));
-            return await Users.Find(filter).FirstAsync();
+            return await Users.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<UserModel> GetUserById(string id)
+        {
+            return await Users.Find(new BsonDocument("_id", new ObjectId(id))).FirstOrDefaultAsync();
         }
     }
 }
