@@ -1,4 +1,5 @@
 using AutoMapper;
+using BusinessLayer;
 using BusinessLayer.Comon;
 using BusinessLayer.Drugs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,8 +26,20 @@ namespace bad_trip
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder =>
+                    {
+                        builder
+                            .AllowAnyOrigin()
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
+                    });
+            });
             services.AddSingleton<DrugService>();
             services.AddSingleton<LoginService>();
+            services.AddSingleton<RecipeService>();
 
             var mappingConfig = new MapperConfiguration(mc =>
             {
@@ -64,6 +77,8 @@ namespace bad_trip
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader()
+            .AllowAnyMethod());
 
             app.UseAuthentication();
             app.UseAuthorization();

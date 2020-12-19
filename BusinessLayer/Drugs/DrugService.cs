@@ -13,7 +13,6 @@ namespace BusinessLayer.Drugs
 {
     public class DrugService
     {
-        //IGridFSBucket gridFS;   // файловое хранилище
         IMongoCollection<Drug> Drugs; // коллекция в базе данных
         private readonly IMapper _mapper;
 
@@ -25,9 +24,6 @@ namespace BusinessLayer.Drugs
             var connection = new MongoUrlBuilder(connectionString);
             MongoClient client = new MongoClient(connectionString);
             IMongoDatabase database = client.GetDatabase(connection.DatabaseName);
-            // получаем доступ к файловому хранилищу
-            //gridFS = new GridFSBucket(database);
-            // обращаемся к коллекции Products
             Drugs = database.GetCollection<Drug>("Drugs");
         }
         
