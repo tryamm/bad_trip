@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Drugs;
 using BusinessLayer.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace bad_trip.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DrugController : ControllerBase
     {
         private readonly DrugService _drugService;
