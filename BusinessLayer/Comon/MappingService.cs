@@ -12,6 +12,7 @@ namespace BusinessLayer.Comon
         public MappingProfile()
         {
             CreateMap<Drug, DrugDTO>().ReverseMap();
+            CreateMap<Patient, PatientDTO>().ReverseMap();
             //CreateMap<List<Drug>, List<DrugDTO>>().ReverseMap();
         }
     }

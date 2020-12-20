@@ -50,6 +50,7 @@ namespace BusinessLayer
 
             var recipesToSend = (from r in recipes
                                  join p in patients on r.PatientId equals p.Id
+                                 join d in drugs on r.Drug equals d.Id
                                  select new RecipeDTO
                                  {
                                      PatientName = p.Fullname,
@@ -57,13 +58,37 @@ namespace BusinessLayer
                                      PatientId = p.Id,
                                      DoctorId = r.DoctorId,
                                      Id = r.Id,
-                                     DrugNames = string.Join(", ", drugs.Where(x => r.Drugs.Contains(x.Id)).Select(x => x.Name))
+                                     DrugName = d.Name
                                  });
             return new RecipeViewModel
             {
                 Recipes = recipesToSend,
                 TotalRows = result.Count()
             };
+        }
+
+        public async Task CreateRecipeAsync(RecipeDTO recipe)
+        {
+            var builder = new FilterDefinitionBuilder<Drug>();
+            var filter = builder.Regex("Name", new BsonRegularExpression(recipe.DrugName));
+            var drug = Drugs.Find(filter).FirstOrDefault();
+            if (drug != null)
+            {
+                var recipeModel = new Recipe
+                {
+                    PatientId = recipe.PatientId,
+                    DoctorId = recipe.DoctorId,
+                    Drug = drug.Id,
+                    DateTime = DateTime.Now,
+                    Doze = recipe.Doze,
+                    Recommendation = recipe.Recommendation
+                };
+                await Recipes.InsertOneAsync(recipeModel);
+            }
+            else
+            {
+                throw new Exception("Error while creating recipe: drug not found.");
+            }
         }
 
         public RecipeDTO GetRecipeById(string id)
@@ -74,6 +99,7 @@ namespace BusinessLayer
 
             return (from r in recipes
                     join p in patients on r.PatientId equals p.Id
+                    join d in drugs on r.Drug equals d.Id
                     select new RecipeDTO
                     {
                         PatientName = p.Fullname,
@@ -83,7 +109,9 @@ namespace BusinessLayer
                         PatientId = p.Id,
                         DoctorId = r.DoctorId,
                         Id = r.Id,
-                        DrugNames = string.Join(", ", drugs.Where(x => r.Drugs.Contains(x.Id)).Select(x => x.Name))
+                        DrugName = d.Name,
+                        Doze = r.Doze,
+                        Recommendation = r.Recommendation
                     }).FirstOrDefault();
         }
     }

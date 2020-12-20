@@ -40,6 +40,7 @@ namespace bad_trip
             services.AddSingleton<DrugService>();
             services.AddSingleton<LoginService>();
             services.AddSingleton<RecipeService>();
+            services.AddSingleton<PatientService>();
 
             var mappingConfig = new MapperConfiguration(mc =>
             {
