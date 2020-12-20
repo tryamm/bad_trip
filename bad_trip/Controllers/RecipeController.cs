@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,13 +21,6 @@ namespace bad_trip.Controllers
         {
             _recipeController = recipeController;
         }
-
-        //[AllowAnonymous]
-        //[HttpGet]
-        //public IActionResult Test()
-        //{
-        //    return Ok("success");
-        //}
 
         [HttpGet]
         public RecipeViewModel Get([FromQuery]QueryModel query)
@@ -53,8 +47,6 @@ namespace bad_trip.Controllers
             await _recipeController.CreateRecipeAsync(recipe);
         }
 
-        //DELETE to /api/recipes/id — delete recipe
-
         [HttpDelete("{id}")]
         public async Task Delete(string id)
         {
@@ -66,6 +58,11 @@ namespace bad_trip.Controllers
         {
             await _recipeController.UpdateAsync(recipe);
         }
-        //PUT/UPDATE to /api/recipes/id — update recipe
+
+        [HttpGet("pdf/{id}")]
+        public async Task<MemoryStream> GetPdfRecipe(string id)
+        {
+            return await _recipeController.GetPdfRecipeAsync(id);
+        }
     }
 }

@@ -5,15 +5,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspose.Words" Version="20.12.0" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.0" />
     <PackageReference Include="MongoDB.Bson" Version="2.11.5" />
     <PackageReference Include="MongoDB.Driver" Version="2.11.5" />
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.11.5" />
+    <PackageReference Include="TemplateEngine.Docx" Version="1.1.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Template\" />
   </ItemGroup>
 
 </Project>

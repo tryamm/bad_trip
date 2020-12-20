@@ -1,13 +1,15 @@
-﻿using AutoMapper;
+﻿using Aspose.Words;
+using AutoMapper;
 using BusinessLayer.DTO;
 using DataLayer.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using TemplateEngine.Docx;
 
 namespace BusinessLayer
 {
@@ -16,6 +18,7 @@ namespace BusinessLayer
         IMongoCollection<Recipe> Recipes;
         IMongoCollection<Patient> Patients;
         IMongoCollection<Drug> Drugs;
+        IMongoCollection<UserModel> Doctors;
         private readonly IMapper _mapper;
 
         public RecipeService(IMapper mapper)
@@ -29,6 +32,7 @@ namespace BusinessLayer
             Recipes = database.GetCollection<Recipe>("Recipes");
             Patients = database.GetCollection<Patient>("Patients");
             Drugs = database.GetCollection<Drug>("Drugs");
+            Doctors = database.GetCollection<UserModel>("Users");
         }
 
         public RecipeViewModel GetRecipes(QueryModel query)
@@ -67,6 +71,62 @@ namespace BusinessLayer
             };
         }
 
+        public async Task<MemoryStream> GetPdfRecipeAsync(string id)
+        {
+            var recipes = Recipes.Find(new BsonDocument("_id", new ObjectId(id))).ToList();
+            var patients = Patients.AsQueryable();
+            var drugs = Drugs.AsQueryable();
+            var doctors = Doctors.AsQueryable();
+
+            var result = (from r in recipes
+                          join p in patients on r.PatientId equals p.Id
+                          join d in drugs on r.Drug equals d.Id
+                          join doc in doctors on r.DoctorId equals doc.Id
+                          select new RecipeDTO
+                          {
+                              PatientName = p.Fullname,
+                              PatientAge = p.Age,
+                              //PatientPhone = p.Phone,
+                              PatientMedcardNumber = p.CardNumber,
+                              DoctorName = doc.FullName,
+                              DrugName = d.Name,
+                              Doze = r.Doze
+                          }).FirstOrDefault();
+
+            var valuesToFill = new Content(
+                new FieldContent("PatientName", result.PatientName),
+                new FieldContent("PatientAge", result.PatientAge.ToString()),
+                new FieldContent("PatientMedcardNumber", result.PatientMedcardNumber),
+                new FieldContent("DoctorName", result.DoctorName),
+                new FieldContent("DrugName", $"{result.DrugName} ({result.Doze})")
+               );
+
+            var systemPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            var destinationTemplatePath = Path.Combine(systemPath, "Template/export_recipe.docx");
+            var sourceTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "Template/recipe_template.docx");
+
+            File.Delete(destinationTemplatePath);
+            File.Copy(sourceTemplatePath, destinationTemplatePath);
+
+            using (var destinationTemplateStream = new FileStream(destinationTemplatePath, FileMode.Open, FileAccess.ReadWrite))
+            {
+                using (var outputDocument = new TemplateProcessor(destinationTemplateStream))
+                {
+                    outputDocument.SetRemoveContentControls(true);
+                    outputDocument.FillContent(valuesToFill);
+                    outputDocument.SaveChanges();   //document save in .docx in destinationTemplatePath, so just take it
+
+                    var resultStream = new MemoryStream();
+                    var fileFormat = (SaveFormat)Enum.Parse(typeof(SaveFormat), "Pdf");
+                    var wordDocument = new Document(destinationTemplateStream);
+                    wordDocument.Save(resultStream, fileFormat);
+                    resultStream.Seek(0, SeekOrigin.Begin);
+                    return resultStream;
+                }
+            }
+
+        }
+
         public async Task UpdateAsync(RecipeDTO recipe)
         {
             var recipeModel = new Recipe
@@ -95,10 +155,12 @@ namespace BusinessLayer
             var patients = Patients.Find(filter).ToList();
             var recipes = Recipes.AsQueryable().ToList();
             var drugs = Drugs.AsQueryable().ToList();
+            var doctors = Doctors.AsQueryable().ToList();
 
             return (from r in recipes
                     join p in patients on r.PatientId equals p.Id
                     join d in drugs on r.Drug equals d.Id
+
                     select new RecipeDTO
                     {
                         PatientName = p.Fullname,
