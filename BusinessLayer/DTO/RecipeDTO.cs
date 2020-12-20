@@ -14,5 +14,7 @@ namespace BusinessLayer.DTO
         public string PatientName { get; set; }
         public string PatientMedcardNumber { get; set; }
         public string DrugNames { get; set; }
+        public int PatientAge { get; set; }
+        public string PatientPhone { get; set; }
     }
 }

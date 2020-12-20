@@ -15,6 +15,7 @@ namespace BusinessLayer
     {
         IMongoCollection<Recipe> Recipes;
         IMongoCollection<Patient> Patients;
+        IMongoCollection<Drug> Drugs;
         private readonly IMapper _mapper;
 
         public RecipeService(IMapper mapper)
@@ -27,6 +28,7 @@ namespace BusinessLayer
             IMongoDatabase database = client.GetDatabase(connection.DatabaseName);
             Recipes = database.GetCollection<Recipe>("Recipes");
             Patients = database.GetCollection<Patient>("Patients");
+            Drugs = database.GetCollection<Drug>("Drugs");
         }
 
         public RecipeViewModel GetRecipes(QueryModel query)
@@ -38,28 +40,51 @@ namespace BusinessLayer
                 filter = filter & builder.Regex("Name", new BsonRegularExpression(query.Name));
             }
 
-            var result = Recipes.AsQueryable().ToList();
+            var result = Recipes.Find(filter).ToList();
 
             var recipes = result.Skip((query.PageNumber - 1) * query.PageSize)
                    .Take(query.PageSize)
                    .ToList();
             var patients = Patients.AsQueryable();
+            var drugs = Drugs.AsQueryable();
 
-            var recipesToSend = (from d in recipes
-                                 join p in patients on d.PatientId equals p.Id
+            var recipesToSend = (from r in recipes
+                                 join p in patients on r.PatientId equals p.Id
                                  select new RecipeDTO
                                  {
                                      PatientName = p.Fullname,
                                      PatientMedcardNumber = p.CardNumber,
                                      PatientId = p.Id,
-                                     DoctorId = d.DoctorId,
-                                     Id = d.Id
+                                     DoctorId = r.DoctorId,
+                                     Id = r.Id,
+                                     DrugNames = string.Join(", ", drugs.Where(x => r.Drugs.Contains(x.Id)).Select(x => x.Name))
                                  });
             return new RecipeViewModel
             {
                 Recipes = recipesToSend,
                 TotalRows = result.Count()
             };
+        }
+
+        public RecipeDTO GetRecipeById(string id)
+        {
+            var recipes = Recipes.Find(new BsonDocument("_id", new ObjectId(id))).ToList();
+            var patients = Patients.AsQueryable();
+            var drugs = Drugs.AsQueryable();
+
+            return (from r in recipes
+                    join p in patients on r.PatientId equals p.Id
+                    select new RecipeDTO
+                    {
+                        PatientName = p.Fullname,
+                        PatientAge = p.Age,
+                        PatientPhone = p.Phone,
+                        PatientMedcardNumber = p.CardNumber,
+                        PatientId = p.Id,
+                        DoctorId = r.DoctorId,
+                        Id = r.Id,
+                        DrugNames = string.Join(", ", drugs.Where(x => r.Drugs.Contains(x.Id)).Select(x => x.Name))
+                    }).FirstOrDefault();
         }
     }
 }

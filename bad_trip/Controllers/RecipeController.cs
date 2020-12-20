@@ -28,9 +28,8 @@ namespace bad_trip.Controllers
         //    return Ok("success");
         //}
 
-        //GET to /api/recipes? p = 1 & n = 5 — get list of recipes(p — page, n — amount of recipes per page)
         [HttpGet]
-        public RecipeViewModel Get(QueryModel query)
+        public RecipeViewModel Get([FromBody]QueryModel query)
         {
             return _recipeController.GetRecipes(query);
         }
@@ -38,6 +37,11 @@ namespace bad_trip.Controllers
         //GET to /api/recipes/more? p = 1 & n = 5 — get more of recipes per one page(n — amount of needed recipes)
 
         //GET to /api/recipes/id — get specific recipe by id
+        [HttpGet("{id}")]
+        public RecipeDTO GetRecipe(string id)
+        {
+            return _recipeController.GetRecipeById(id);
+        }
 
         //POST to /api/recipes — create recipe
 
