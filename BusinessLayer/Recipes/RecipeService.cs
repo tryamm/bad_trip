@@ -67,11 +67,45 @@ namespace BusinessLayer
             };
         }
 
+        public List<RecipeDTO> GetRecipeByPatientPhone(string phone)
+        {
+            var builder = new FilterDefinitionBuilder<Patient>();
+            var filter = builder.Regex("Phone", new BsonRegularExpression(phone));
+
+            var patients = Patients.Find(filter).ToList();
+            var recipes = Recipes.AsQueryable().ToList();
+            var drugs = Drugs.AsQueryable().ToList();
+
+            return (from r in recipes
+                    join p in patients on r.PatientId equals p.Id
+                    join d in drugs on r.Drug equals d.Id
+                    select new RecipeDTO
+                    {
+                        PatientName = p.Fullname,
+                        PatientAge = p.Age,
+                        PatientPhone = p.Phone,
+                        PatientMedcardNumber = p.CardNumber,
+                        PatientId = p.Id,
+                        DoctorId = r.DoctorId,
+                        Id = r.Id,
+                        DrugName = d.Name,
+                        Doze = r.Doze,
+                        Recommendation = r.Recommendation
+                    }).ToList();
+        }
+
         public async Task CreateRecipeAsync(RecipeDTO recipe)
         {
             var builder = new FilterDefinitionBuilder<Drug>();
             var filter = builder.Regex("Name", new BsonRegularExpression(recipe.DrugName));
             var drug = Drugs.Find(filter).FirstOrDefault();
+            if (recipe.PatientId == null && recipe.PatientPhone != null)
+            {
+                var build = new FilterDefinitionBuilder<Patient>();
+                var filtering = build.Regex("Phone", new BsonRegularExpression(recipe.PatientPhone));
+                var patient = Patients.Find(filtering).FirstOrDefault();
+                recipe.PatientId = patient.Id;
+            }
             if (drug != null)
             {
                 var recipeModel = new Recipe

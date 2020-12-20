@@ -40,6 +40,13 @@ namespace bad_trip.Controllers
             return _recipeController.GetRecipeById(id);
         }
 
+        [AllowAnonymous]
+        [HttpGet("phone/{phone}")]
+        public List<RecipeDTO> Get(string phone)
+        {
+            return _recipeController.GetRecipeByPatientPhone(phone);
+        }
+
         [HttpPost]
         public async Task Create([FromBody] RecipeDTO recipe)
         {

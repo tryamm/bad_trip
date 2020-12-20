@@ -24,6 +24,7 @@ namespace BusinessLayer.Comon
             var builder = new FilterDefinitionBuilder<UserModel>();
             var filter = builder.Empty;
             filter = filter & builder.Regex("Username", new BsonRegularExpression(user.Username));
+            filter = filter & builder.Regex("Password", new BsonRegularExpression(user.Password));
             return await Users.Find(filter).FirstOrDefaultAsync();
         }
 
