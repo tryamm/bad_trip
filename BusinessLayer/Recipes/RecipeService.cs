@@ -101,28 +101,36 @@ namespace BusinessLayer
                 new FieldContent("DrugName", $"{result.DrugName} ({result.Doze})")
                );
 
-            var systemPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            var destinationTemplatePath = Path.Combine(systemPath, "Template/export_recipe.docx");
-            var sourceTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "Template/recipe_template.docx");
-
-            File.Delete(destinationTemplatePath);
-            File.Copy(sourceTemplatePath, destinationTemplatePath);
-
-            using (var destinationTemplateStream = new FileStream(destinationTemplatePath, FileMode.Open, FileAccess.ReadWrite))
+            try
             {
-                using (var outputDocument = new TemplateProcessor(destinationTemplateStream))
-                {
-                    outputDocument.SetRemoveContentControls(true);
-                    outputDocument.FillContent(valuesToFill);
-                    outputDocument.SaveChanges();   //document save in .docx in destinationTemplatePath, so just take it
+                //var systemPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                var destinationTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "Export/export_recipe.docx");
+                var sourceTemplatePath = Path.Combine(Directory.GetCurrentDirectory(), "Template/recipe_template.docx");
 
-                    var resultStream = new MemoryStream();
-                    var fileFormat = (SaveFormat)Enum.Parse(typeof(SaveFormat), "Pdf");
-                    var wordDocument = new Document(destinationTemplateStream);
-                    wordDocument.Save(resultStream, fileFormat);
-                    resultStream.Seek(0, SeekOrigin.Begin);
-                    return resultStream;
+                File.Delete(destinationTemplatePath);
+                File.Copy(sourceTemplatePath, destinationTemplatePath);
+
+                using (var destinationTemplateStream = new FileStream(destinationTemplatePath, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    using (var outputDocument = new TemplateProcessor(destinationTemplateStream))
+                    {
+                        outputDocument.SetRemoveContentControls(true);
+                        outputDocument.FillContent(valuesToFill);
+                        outputDocument.SaveChanges();   //document save in .docx in destinationTemplatePath, so just take it
+
+                        var resultStream = new MemoryStream();
+                        //destinationTemplateStream.Seek(0, SeekOrigin.Begin);
+                        //await destinationTemplateStream.CopyToAsync(resultStream);
+                            var fileFormat = (SaveFormat)Enum.Parse(typeof(SaveFormat), "Pdf");
+                            var wordDocument = new Aspose.Words.Document(destinationTemplateStream);
+                            wordDocument.Save(resultStream, fileFormat);
+                        resultStream.Seek(0, SeekOrigin.Begin);
+                        return resultStream;
+                    }
                 }
+            } catch (Exception ex)
+            {
+                throw ex;
             }
 
         }

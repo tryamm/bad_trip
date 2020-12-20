@@ -23,7 +23,7 @@ namespace bad_trip.Controllers
         }
 
         [HttpGet]
-        public RecipeViewModel Get([FromQuery]QueryModel query)
+        public RecipeViewModel Get([FromQuery] QueryModel query)
         {
             return _recipeController.GetRecipes(query);
         }
@@ -54,15 +54,22 @@ namespace bad_trip.Controllers
         }
 
         [HttpPut]
-        public async Task Update([FromBody]RecipeDTO recipe)
+        public async Task Update([FromBody] RecipeDTO recipe)
         {
             await _recipeController.UpdateAsync(recipe);
         }
 
         [HttpGet("pdf/{id}")]
-        public async Task<MemoryStream> GetPdfRecipe(string id)
+        public async Task<IActionResult> GetPdfRecipe(string id)
         {
-            return await _recipeController.GetPdfRecipeAsync(id);
+            try
+            {
+                return Ok(await _recipeController.GetPdfRecipeAsync(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
