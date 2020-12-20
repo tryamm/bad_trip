@@ -67,6 +67,26 @@ namespace BusinessLayer
             };
         }
 
+        public async Task UpdateAsync(RecipeDTO recipe)
+        {
+            var recipeModel = new Recipe
+            {
+                Id = recipe.Id,
+                PatientId = recipe.PatientId,
+                DoctorId = recipe.DoctorId,
+                Drug = recipe.Drug,
+                DateTime = recipe.DateTime,
+                Doze = recipe.Doze,
+                Recommendation = recipe.Recommendation
+            };
+            await Recipes.ReplaceOneAsync(new BsonDocument("_id", new ObjectId(recipe.Id)), recipeModel);
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            await Recipes.DeleteOneAsync(new BsonDocument("_id", new ObjectId(id)));
+        }
+
         public List<RecipeDTO> GetRecipeByPatientPhone(string phone)
         {
             var builder = new FilterDefinitionBuilder<Patient>();

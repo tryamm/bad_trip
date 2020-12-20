@@ -55,6 +55,17 @@ namespace bad_trip.Controllers
 
         //DELETE to /api/recipes/id — delete recipe
 
+        [HttpDelete("{id}")]
+        public async Task Delete(string id)
+        {
+            await _recipeController.DeleteAsync(id);
+        }
+
+        [HttpPut]
+        public async Task Update([FromBody]RecipeDTO recipe)
+        {
+            await _recipeController.UpdateAsync(recipe);
+        }
         //PUT/UPDATE to /api/recipes/id — update recipe
     }
 }
